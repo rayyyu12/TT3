@@ -30,6 +30,7 @@ constexpr int NUM_MIXER_CHANNELS = 25;
 
 constexpr float THROTTLE_DEADZONE_LOW = 0.05f;
 constexpr int THROTTLE_SMOOTHING_WINDOW_SIZE = 5;
+constexpr int GESTURE_HISTORY_CAPACITY = 20;
 
 // =============================================================================
 // M4 -- Timing & Thresholds

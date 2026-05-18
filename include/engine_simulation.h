@@ -43,8 +43,14 @@ public:
 
     virtual void update(float dt, float new_throttle) = 0;
 
+    virtual void reset() {
+        state = EngineState::ENGINE_OFF;
+        simulated_rpm = 0.0f;
+    }
+
     EngineState get_state() const { return state; }
     float get_simulated_rpm() const { return simulated_rpm; }
+    virtual float get_current_throttle() const { return 0.0f; }
 
     const char* get_state_name() const {
         return engine_state_to_string(state);

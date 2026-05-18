@@ -1,0 +1,10 @@
+^C:\USERS\RAYYAN KHAN\DESKTOP\SCOOTERV2\BUILD\CMAKEFILES\BA4C0AB97287F2A63FCBEA092822A225\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" "-SC:/Users/Rayyan Khan/Desktop/ScooterV2" "-BC:/Users/Rayyan Khan/Desktop/ScooterV2/build" --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file "C:/Users/Rayyan Khan/Desktop/ScooterV2/build/ScooterV2.sln"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

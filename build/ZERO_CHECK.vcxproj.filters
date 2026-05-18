@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\Rayyan Khan\Desktop\ScooterV2\build\CMakeFiles\ba4c0ab97287f2a63fcbea092822a225\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{21E7C780-1DF7-3F4C-B87D-66AAB58DD4ED}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
