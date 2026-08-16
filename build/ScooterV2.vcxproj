@@ -394,10 +394,12 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClCompile Include="C:\Users\Rayyan Khan\Desktop\ScooterV2\src\m4_sound_manager.cpp" />
     <ClCompile Include="C:\Users\Rayyan Khan\Desktop\ScooterV2\src\supra_sound_manager.cpp" />
     <ClCompile Include="C:\Users\Rayyan Khan\Desktop\ScooterV2\src\hellcat_sound_manager.cpp" />
+    <ClCompile Include="C:\Users\Rayyan Khan\Desktop\ScooterV2\src\svj_sound_manager.cpp" />
     <ClCompile Include="C:\Users\Rayyan Khan\Desktop\ScooterV2\src\m4_engine.cpp" />
     <ClCompile Include="C:\Users\Rayyan Khan\Desktop\ScooterV2\src\supra_engine.cpp" />
     <ClCompile Include="C:\Users\Rayyan Khan\Desktop\ScooterV2\src\hellcat_engine.cpp" />
-    <ClCompile Include="C:\Users\Rayyan Khan\Desktop\ScooterV2\src\triple_car_system.cpp" />
+    <ClCompile Include="C:\Users\Rayyan Khan\Desktop\ScooterV2\src\svj_engine.cpp" />
+    <ClCompile Include="C:\Users\Rayyan Khan\Desktop\ScooterV2\src\car_system.cpp" />
     <ClCompile Include="C:\Users\Rayyan Khan\Desktop\ScooterV2\src\hardware.cpp" />
     <ClCompile Include="C:\Users\Rayyan Khan\Desktop\ScooterV2\src\logging.cpp" />
   </ItemGroup>

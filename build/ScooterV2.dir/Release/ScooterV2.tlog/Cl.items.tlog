@@ -3,9 +3,11 @@ C:\Users\Rayyan Khan\Desktop\ScooterV2\src\sound_loader.cpp;C:\Users\Rayyan Khan
 C:\Users\Rayyan Khan\Desktop\ScooterV2\src\m4_sound_manager.cpp;C:\Users\Rayyan Khan\Desktop\ScooterV2\build\ScooterV2.dir\Release\m4_sound_manager.obj
 C:\Users\Rayyan Khan\Desktop\ScooterV2\src\supra_sound_manager.cpp;C:\Users\Rayyan Khan\Desktop\ScooterV2\build\ScooterV2.dir\Release\supra_sound_manager.obj
 C:\Users\Rayyan Khan\Desktop\ScooterV2\src\hellcat_sound_manager.cpp;C:\Users\Rayyan Khan\Desktop\ScooterV2\build\ScooterV2.dir\Release\hellcat_sound_manager.obj
+C:\Users\Rayyan Khan\Desktop\ScooterV2\src\svj_sound_manager.cpp;C:\Users\Rayyan Khan\Desktop\ScooterV2\build\ScooterV2.dir\Release\svj_sound_manager.obj
 C:\Users\Rayyan Khan\Desktop\ScooterV2\src\m4_engine.cpp;C:\Users\Rayyan Khan\Desktop\ScooterV2\build\ScooterV2.dir\Release\m4_engine.obj
 C:\Users\Rayyan Khan\Desktop\ScooterV2\src\supra_engine.cpp;C:\Users\Rayyan Khan\Desktop\ScooterV2\build\ScooterV2.dir\Release\supra_engine.obj
 C:\Users\Rayyan Khan\Desktop\ScooterV2\src\hellcat_engine.cpp;C:\Users\Rayyan Khan\Desktop\ScooterV2\build\ScooterV2.dir\Release\hellcat_engine.obj
-C:\Users\Rayyan Khan\Desktop\ScooterV2\src\triple_car_system.cpp;C:\Users\Rayyan Khan\Desktop\ScooterV2\build\ScooterV2.dir\Release\triple_car_system.obj
+C:\Users\Rayyan Khan\Desktop\ScooterV2\src\svj_engine.cpp;C:\Users\Rayyan Khan\Desktop\ScooterV2\build\ScooterV2.dir\Release\svj_engine.obj
+C:\Users\Rayyan Khan\Desktop\ScooterV2\src\car_system.cpp;C:\Users\Rayyan Khan\Desktop\ScooterV2\build\ScooterV2.dir\Release\car_system.obj
 C:\Users\Rayyan Khan\Desktop\ScooterV2\src\hardware.cpp;C:\Users\Rayyan Khan\Desktop\ScooterV2\build\ScooterV2.dir\Release\hardware.obj
 C:\Users\Rayyan Khan\Desktop\ScooterV2\src\logging.cpp;C:\Users\Rayyan Khan\Desktop\ScooterV2\build\ScooterV2.dir\Release\logging.obj

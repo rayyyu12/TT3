@@ -1,6 +1,6 @@
 #include "config.h"
 #include "hardware.h"
-#include "triple_car_system.h"
+#include "car_system.h"
 #include "logging.h"
 
 #include <SDL2/SDL.h>
@@ -49,6 +49,10 @@ static void poll_keyboard(bool& should_switch) {
                 desktop_throttle = std::min(1.0f, desktop_throttle + THROTTLE_STEP);
             else if (arrow == 80) // Down arrow
                 desktop_throttle = std::max(0.0f, desktop_throttle - THROTTLE_STEP);
+            else if (arrow == 75) // Left arrow
+                post_left_signal_event();
+            else if (arrow == 77) // Right arrow
+                post_right_signal_event();
         } else if (ch == 'w' || ch == 'W') {
             desktop_throttle = std::min(1.0f, desktop_throttle + THROTTLE_STEP);
         } else if (ch == 's' || ch == 'S') {
@@ -74,14 +78,15 @@ static void poll_keyboard(bool& should_switch) {
 
 #endif // !RASPI_HW
 
-static void update_display(const TripleCarSystem& system,
+static void update_display(const CarSystem& system,
                            float smoothed, float raw, int raw_adc) {
     const EngineSimulation* engine = system.get_active_engine();
     const char* car = system.get_current_car_name();
     float idle_vol = 0.0f;
     std::string extra;
 
-    if (std::string(car) == "M4") {
+    std::string car_str(car);
+    if (car_str == "M4") {
         const auto& sm = system.get_m4_sm();
         idle_vol = sm.idle_current_volume;
         float rpm = engine->get_simulated_rpm();
@@ -90,14 +95,14 @@ static void update_display(const TripleCarSystem& system,
         char buf[128];
         std::snprintf(buf, sizeof(buf), "SimRPM: %-4.0f", rpm);
         extra = buf;
-    } else if (std::string(car) == "Supra") {
+    } else if (car_str == "Supra") {
         const auto& sm = system.get_supra_sm();
         idle_vol = sm.idle_current_volume;
         float rpm = engine->get_simulated_rpm();
         char buf[128];
         std::snprintf(buf, sizeof(buf), "SimRPM: %-4.0f", rpm);
         extra = buf;
-    } else {
+    } else if (car_str == "Hellcat") {
         const auto& sm  = system.get_hellcat_sm();
         const auto& eng = system.get_hellcat_engine();
         idle_vol = sm.idle_current_volume;
@@ -106,6 +111,19 @@ static void update_display(const TripleCarSystem& system,
                       "SimRPM: %-4.0f | Gear: %d | Load: %5.2f | EMA: %.3f",
                       eng.get_simulated_rpm(), eng.simulated_gear,
                       eng.engine_load, eng.smoothed_throttle);
+        extra = buf;
+    } else {  // SVJ
+        const auto& sm  = system.get_svj_sm();
+        const auto& eng = system.get_svj_engine();
+        idle_vol = sm.idle_current_volume;
+        char buf[160];
+        std::snprintf(buf, sizeof(buf),
+                      "Gear: %d | ClipPos: %5.2fs | RevZone: %d | LaunchT: %4.2f | Firing: %s",
+                      eng.simulated_gear,
+                      eng.gear_clip_elapsed,
+                      eng.current_rev_zone,
+                      eng.launch_release_t,
+                      eng.launch_firing ? "Y" : "N");
         extra = buf;
     }
 
@@ -141,8 +159,8 @@ static bool init_sdl_mixer() {
     std::printf("SDL_mixer initialized. Requested %d, got %d channels.\n",
                 NUM_MIXER_CHANNELS, allocated);
 
-    if (allocated < 10) {
-        std::printf("CRITICAL WARNING: Only %d channels allocated, at least 10 recommended.\n",
+    if (allocated < 32) {
+        std::printf("CRITICAL WARNING: Only %d channels allocated, at least 32 recommended.\n",
                     allocated);
     }
     return true;
@@ -191,6 +209,17 @@ static void check_sound_files() {
         "hellcat_rev_1.wav", "hellcat_rev_2.wav", "hellcat_rev_3.wav"
     });
 
+    missing |= check(SVJ_SOUND_FILES_PATH, {
+        "Startup.wav", "Idle.wav", "Redline.wav", "CruisingUnlooped.wav",
+        "Deaccerleration1.wav", "LaunchControl.wav", "Backfire.wav",
+        "1stG.wav", "2ndG.wav", "3rdG.wav", "4thG.wav", "5thG.wav", "6thG.wav",
+        "Pop1.wav", "Pop2.wav", "Pop3.wav", "Pop4.wav",
+        "Downshift1.wav", "Downshift2.wav", "Downshift3.wav",
+        "LowRev1.wav", "LowRev2.wav",
+        "MediumRev1.wav", "MediumRev2.wav",
+        "HighRev1.wav", "HighRev2.wav"
+    });
+
     if (missing) {
         std::printf("--- Some essential sound files are missing. "
                     "Functionality will be significantly affected. ---\n");
@@ -214,6 +243,8 @@ int main() {
         std::printf("--- FAILED TO INITIALIZE ADC. SIMULATING 0%% THROTTLE ---\n");
     if (!initialize_button(running, switch_requested))
         std::printf("--- BUTTON DISABLED ---\n");
+    if (!initialize_signal_buttons())
+        std::printf("--- TURN SIGNAL BUTTONS DISABLED ---\n");
 
     // Pin the main (audio) thread to core 3 and start the ADC thread on core 2
     pin_to_core(3);
@@ -225,13 +256,14 @@ int main() {
     std::filesystem::create_directories(M4_SOUND_FILES_PATH);
     std::filesystem::create_directories(SUPRA_SOUND_FILES_PATH);
     std::filesystem::create_directories(HELLCAT_SOUND_FILES_PATH);
+    std::filesystem::create_directories(SVJ_SOUND_FILES_PATH);
 
     check_sound_files();
 
-    TripleCarSystem system;
+    CarSystem system;
     DataLogger logger;
 
-    std::printf("\nTriple Car EV Sound Simulation Running (Headless)...\n");
+    std::printf("\nMulti-Car EV Sound Simulation Running (Headless)...\n");
     std::printf("Starting car: %s\n", system.get_current_car_name());
     std::printf("Throttle smoothing window: %d samples\n", THROTTLE_SMOOTHING_WINDOW_SIZE);
     std::printf("M4 - Staged Rev System Active. Simulating RPM: Idle %.0f, Decay %.0f/s\n",
@@ -252,6 +284,19 @@ int main() {
     std::printf("Hellcat - RPM Simulation: Idle %.0f, Redline %.0f, 5-Speed Auto\n",
                 HELLCAT_IDLE_RPM, HELLCAT_REDLINE_RPM);
     std::printf("Hellcat - Foundation Layer: Idle + Rumble + Supercharger Whine with Crossfading\n");
+    std::printf("SVJ - Manual 6-speed paddle-shift with throttle-modal buttons\n");
+    std::printf("SVJ -   Moving: right=upshift, left=downshift (DECEL only)\n");
+    std::printf("SVJ -   IDLE:   right=NEUTRAL rev mode, left=LAUNCH CONTROL\n");
+    std::printf("SVJ -   NEUTRAL: right=exit (clunk), throttle->LowRev/MedRev/HighRev/Redline\n");
+    std::printf("SVJ -   LAUNCH: right=launch (1.5s delay, gear 1), left=cancel\n");
+    std::printf("SVJ - Ignition cut: %d ms, decel->accel crossfade: %d ms\n",
+                SVJ_IGNITION_CUT_MS, SVJ_DECEL_TO_ACCEL_CROSSFADE_MS);
+    std::printf("SVJ - Pops: %.0f%% no-pop on upshift | Backfire: %.0f%% accel->decel, %.0f%% downshift to 1st/2nd\n",
+                SVJ_UPSHIFT_NO_POP_PROBABILITY * 100.0f,
+                SVJ_DECEL_BACKFIRE_PROBABILITY * 100.0f,
+                SVJ_DOWNSHIFT_BACKFIRE_PROBABILITY * 100.0f);
+    std::printf("SVJ - Turn signals: left=GPIO %d, right=GPIO %d (active-low, pull-up)\n",
+                SVJ_LEFT_SIGNAL_GPIO_PIN, SVJ_RIGHT_SIGNAL_GPIO_PIN);
     std::printf("Throttle Input: ADC P%d -> %d (0%%) to %d (100%%)\n",
                 ADC_CHANNEL_NUMBER, MIN_ADC_VALUE, MAX_ADC_VALUE);
     std::printf("Button: GPIO %d (short press = switch car, long press = shutdown)\n",
@@ -265,6 +310,8 @@ int main() {
     std::printf("  D              = throttle down fine (-1%%)\n");
     std::printf("  1              = full throttle (100%%)\n");
     std::printf("  0              = release throttle (0%%)\n");
+    std::printf("  Left Arrow     = left turn signal  (SVJ: downshift / launch / cancel)\n");
+    std::printf("  Right Arrow    = right turn signal (SVJ: upshift / neutral / launch fire)\n");
     std::printf("  Space          = switch car\n");
     std::printf("  Escape         = quit\n");
     std::printf("------------------------\n\n");
@@ -303,7 +350,11 @@ int main() {
         float raw_throttle = desktop_throttle;
 #endif
 
-        auto [smoothed, raw_out] = system.update(dt, raw_throttle);
+        CarSystem::InputEvents events;
+        events.left  = consume_left_signal_event();
+        events.right = consume_right_signal_event();
+
+        auto [smoothed, raw_out] = system.update(dt, raw_throttle, events);
 
         logger.record(system, smoothed, raw_out, raw_adc, dt);
 
@@ -336,6 +387,7 @@ int main() {
     system.get_m4_sm().stop_all_sounds();
     system.get_supra_sm().stop_all_sounds();
     system.get_hellcat_sm().stop_all_sounds();
+    system.get_svj_sm().stop_all_sounds();
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
 #ifdef RASPI_HW

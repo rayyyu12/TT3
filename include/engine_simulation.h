@@ -10,14 +10,16 @@ enum class EngineState {
     ENGINE_OFF,
     STARTING,
     IDLING,         // M4
-    IDLE,           // Supra, Hellcat
+    IDLE,           // Supra, Hellcat, SVJ
     PLAYFUL_REV,    // M4
     PRE_ACCEL,      // Supra
-    ACCELERATING,   // M4, Supra
-    CRUISING,       // M4, Supra
-    DECELERATING,   // M4, Supra
-    LAUNCH_HOLD,    // M4
-    DRIVING         // Hellcat
+    ACCELERATING,   // M4, Supra, SVJ
+    CRUISING,       // M4, Supra, SVJ
+    DECELERATING,   // M4, Supra, SVJ
+    LAUNCH_HOLD,    // M4, SVJ
+    DRIVING,        // Hellcat
+    REDLINE,        // SVJ
+    NEUTRAL         // SVJ
 };
 
 inline const char* engine_state_to_string(EngineState s) {
@@ -33,6 +35,8 @@ inline const char* engine_state_to_string(EngineState s) {
         case EngineState::DECELERATING: return "DECELERATING";
         case EngineState::LAUNCH_HOLD:  return "LAUNCH_HOLD";
         case EngineState::DRIVING:      return "DRIVING";
+        case EngineState::REDLINE:      return "REDLINE";
+        case EngineState::NEUTRAL:      return "NEUTRAL";
     }
     return "UNKNOWN";
 }

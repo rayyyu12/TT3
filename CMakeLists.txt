@@ -13,10 +13,12 @@ set(SOURCES
     src/m4_sound_manager.cpp
     src/supra_sound_manager.cpp
     src/hellcat_sound_manager.cpp
+    src/svj_sound_manager.cpp
     src/m4_engine.cpp
     src/supra_engine.cpp
     src/hellcat_engine.cpp
-    src/triple_car_system.cpp
+    src/svj_engine.cpp
+    src/car_system.cpp
     src/hardware.cpp
     src/logging.cpp
 )

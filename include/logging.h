@@ -5,7 +5,7 @@
 #include <vector>
 #include <map>
 
-class TripleCarSystem;
+class CarSystem;
 
 struct LogEntry {
     double  timestamp_unix    = 0.0;
@@ -29,7 +29,7 @@ class DataLogger {
 public:
     DataLogger() { entries.reserve(FPS * 600); }
 
-    void record(const TripleCarSystem& system,
+    void record(const CarSystem& system,
                 float smoothed_throttle, float raw_throttle,
                 int raw_adc, float dt);
 

@@ -51,6 +51,11 @@ static std::atomic<bool>* g_running_ptr       = nullptr;
 static std::atomic<bool>* g_switch_req_ptr    = nullptr;
 static std::atomic<float> g_button_press_time{0.0f};
 
+static std::atomic<bool>  g_left_signal_event {false};
+static std::atomic<bool>  g_right_signal_event{false};
+static std::atomic<float> g_left_last_event_time {0.0f};
+static std::atomic<float> g_right_last_event_time{0.0f};
+
 static float monotonic_sec() {
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
@@ -104,6 +109,53 @@ bool initialize_button(std::atomic<bool>& running,
 
     std::printf("Button initialized on GPIO %d (interrupt-driven)\n", BUTTON_GPIO_PIN);
     return true;
+}
+
+// --------------------------------------------------------------------------
+// Turn signal ISRs (edge-triggered, software-debounced)
+// --------------------------------------------------------------------------
+
+static void left_signal_isr() {
+    if (digitalRead(SVJ_LEFT_SIGNAL_GPIO_PIN) != 0) return;  // active-low
+    float now = monotonic_sec();
+    float last = g_left_last_event_time.load(std::memory_order_relaxed);
+    if (now - last < BUTTON_DEBOUNCE_TIME) return;
+    g_left_last_event_time.store(now, std::memory_order_relaxed);
+    g_left_signal_event.store(true, std::memory_order_release);
+}
+
+static void right_signal_isr() {
+    if (digitalRead(SVJ_RIGHT_SIGNAL_GPIO_PIN) != 0) return;
+    float now = monotonic_sec();
+    float last = g_right_last_event_time.load(std::memory_order_relaxed);
+    if (now - last < BUTTON_DEBOUNCE_TIME) return;
+    g_right_last_event_time.store(now, std::memory_order_relaxed);
+    g_right_signal_event.store(true, std::memory_order_release);
+}
+
+bool initialize_signal_buttons() {
+    pinMode(SVJ_LEFT_SIGNAL_GPIO_PIN, INPUT);
+    pullUpDnControl(SVJ_LEFT_SIGNAL_GPIO_PIN, PUD_UP);
+    pinMode(SVJ_RIGHT_SIGNAL_GPIO_PIN, INPUT);
+    pullUpDnControl(SVJ_RIGHT_SIGNAL_GPIO_PIN, PUD_UP);
+
+    bool ok = true;
+    if (wiringPiISR(SVJ_LEFT_SIGNAL_GPIO_PIN, INT_EDGE_FALLING, &left_signal_isr) < 0) {
+        std::printf("WARNING: Left signal ISR registration failed on GPIO %d.\n",
+                    SVJ_LEFT_SIGNAL_GPIO_PIN);
+        ok = false;
+    }
+    if (wiringPiISR(SVJ_RIGHT_SIGNAL_GPIO_PIN, INT_EDGE_FALLING, &right_signal_isr) < 0) {
+        std::printf("WARNING: Right signal ISR registration failed on GPIO %d.\n",
+                    SVJ_RIGHT_SIGNAL_GPIO_PIN);
+        ok = false;
+    }
+    if (ok) {
+        std::printf("Turn signals initialized: left GPIO %d, right GPIO %d (active-low, debounce %.0fms)\n",
+                    SVJ_LEFT_SIGNAL_GPIO_PIN, SVJ_RIGHT_SIGNAL_GPIO_PIN,
+                    BUTTON_DEBOUNCE_TIME * 1000.0f);
+    }
+    return ok;
 }
 
 void cleanup_gpio() {
@@ -166,6 +218,11 @@ bool initialize_button(std::atomic<bool>& /*running*/,
     return false;
 }
 
+bool initialize_signal_buttons() {
+    std::printf("GPIO hardware not available. Turn signals will use keyboard arrows.\n");
+    return false;
+}
+
 void cleanup_gpio() {}
 
 int read_adc_value() {
@@ -190,4 +247,30 @@ float get_throttle_percentage(int raw_adc) {
     int clamped = std::clamp(raw_adc, MIN_ADC_VALUE, MAX_ADC_VALUE);
     return static_cast<float>(clamped - MIN_ADC_VALUE)
          / static_cast<float>(MAX_ADC_VALUE - MIN_ADC_VALUE);
+}
+
+// --------------------------------------------------------------------------
+// Signal-event API (shared between Pi ISRs and desktop keyboard polling)
+// --------------------------------------------------------------------------
+
+#ifndef RASPI_HW
+// Desktop builds don't have the ISR-side flags compiled in; declare them here.
+static std::atomic<bool> g_left_signal_event {false};
+static std::atomic<bool> g_right_signal_event{false};
+#endif
+
+bool consume_left_signal_event() {
+    return g_left_signal_event.exchange(false, std::memory_order_acq_rel);
+}
+
+bool consume_right_signal_event() {
+    return g_right_signal_event.exchange(false, std::memory_order_acq_rel);
+}
+
+void post_left_signal_event() {
+    g_left_signal_event.store(true, std::memory_order_release);
+}
+
+void post_right_signal_event() {
+    g_right_signal_event.store(true, std::memory_order_release);
 }

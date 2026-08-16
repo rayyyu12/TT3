@@ -1,5 +1,5 @@
 #include "logging.h"
-#include "triple_car_system.h"
+#include "car_system.h"
 #include <fstream>
 #include <chrono>
 #include <ctime>
@@ -23,7 +23,7 @@ static std::string iso_now() {
     return oss.str();
 }
 
-void DataLogger::record(const TripleCarSystem& system,
+void DataLogger::record(const CarSystem& system,
                         float smoothed_throttle, float raw_throttle,
                         int raw_adc, float dt) {
     auto now = std::chrono::system_clock::now();
@@ -63,7 +63,7 @@ void DataLogger::record(const TripleCarSystem& system,
         e.idle_is_fading   = sm.idle_is_fading;
         e.extra_fields["supra_sim_rpm"] =
             std::to_string(eng.get_simulated_rpm());
-    } else {
+    } else if (e.active_car == "Hellcat") {
         const auto& eng = system.get_hellcat_engine();
         const auto& sm  = system.get_hellcat_sm();
         e.idle_target_vol  = sm.idle_target_volume;
@@ -76,6 +76,24 @@ void DataLogger::record(const TripleCarSystem& system,
         e.extra_fields["hellcat_engine_load"] =
             std::to_string(eng.engine_load);
         e.extra_fields["hellcat_smoothed_throttle"] =
+            std::to_string(eng.smoothed_throttle);
+    } else {  // SVJ
+        const auto& eng = system.get_svj_engine();
+        const auto& sm  = system.get_svj_sm();
+        e.idle_target_vol  = sm.idle_target_volume;
+        e.idle_current_vol = sm.idle_current_volume;
+        e.idle_is_fading   = sm.idle_is_fading;
+        e.extra_fields["svj_sim_gear"] =
+            std::to_string(eng.simulated_gear);
+        e.extra_fields["svj_clip_elapsed"] =
+            std::to_string(eng.gear_clip_elapsed);
+        e.extra_fields["svj_rev_zone"] =
+            std::to_string(eng.current_rev_zone);
+        e.extra_fields["svj_launch_release_t"] =
+            std::to_string(eng.launch_release_t);
+        e.extra_fields["svj_launch_firing"] =
+            eng.launch_firing ? "true" : "false";
+        e.extra_fields["svj_smoothed_throttle"] =
             std::to_string(eng.smoothed_throttle);
     }
 
